@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node name="referee_receiver_node" pkg="referee_receiver" type="referee_receiver_node" >
+    <param name="path" type="str" value="/home/alice1-nuke/logs/robocup_2018/referee" />
+  </node>
+
+</launch>

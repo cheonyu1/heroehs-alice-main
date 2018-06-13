@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <include file="$(find record_vision)/launch/record_vision.launch" />
+  <include file="$(find referee_receiver)/launch/referee_receiver.launch" />
+  <include file="$(find referee_sender)/launch/referee_sender.launch" />
+  <node name="main_controller_node" pkg="main_controller" type="main_controller_node" output="screen" >
+    <param name="team_number" type="int" value="46" />
+    <param name="robot_number" type="int" value="1" />
+  </node>
+
+</launch>
