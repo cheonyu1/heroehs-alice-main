@@ -133,14 +133,19 @@ public:
 
   void Attack()
   {
+    ros::Time cur_time = ros::Time::now();
     float angle = atan2(obj[0].pos.y, obj[0].pos.x);
     //cout << angle << endl;
     if(!on_process && !is_cooling)
     {
       if(obj_recv[0]) // received ball data
       {
-        if(obj_recv[3]) // received goalpost data
+        if(obj_lost[3]+ros::Duration(2) < cur_time)//obj_recv[3]) // received goalpost data
         {
+          float d_a = atan2(obj[3].pos.x - obj[0].pos.x, obj[3].pos.y - obj[0].pos.y);
+          float d_x = obj[0].pos.x - sin(d_a)*0.4;
+          float d_y = obj[0].pos.y - cos(d_a)*0.4;
+          angle = atan2(d_y, d_x);
           if(obj[0].pos.x < 0.4 && fabs(obj[0].pos.y) < 0.2)
           {
             Kick();
@@ -209,9 +214,6 @@ public:
         }
       }
     }
-    // float d_a = atan2(map->goal[0]->x - map->ball->x, map->goal[0]->y - map->ball->y);
-    // float d_x = map->ball->x - sin(d_a)*0.3;
-    // float d_y = map->ball->y - cos(d_a)*0.3;
   }
 
   void Defense()
