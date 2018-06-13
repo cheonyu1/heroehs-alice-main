@@ -1,5 +1,6 @@
 #include <iostream>
 #include <stdlib.h>
+#include <sstream>
 
 #include <ros/ros.h>
 #include <std_msgs/Bool.h>
@@ -24,6 +25,7 @@ const float pi = 3.14159294;
 
 class Alice
 {
+  Log *log_file;
 public:
   ros::Publisher pub_return_data;
   ros::Publisher pub_move_command;
@@ -47,6 +49,8 @@ public:
   int last_robot_state;
   int last_game_state;
 
+  ros::Time cur_time;
+
   ros::Time signal_timer;
   ros::Duration cool_time;
   bool is_cooling;
@@ -61,6 +65,9 @@ public:
   Alice(){}
   Alice(ros::NodeHandle &nh):game_state(-1), robot_state(-1), on_process(false)
   {
+    string path = "/home/alice2-nuke/logs/robocup_2018/main_controller";
+    string file_name = "/"+GetYYMMDD()+"_main_controller_"+GetSeconds(ros::Time::now().sec)+".txt";
+    log_file = new Log(path+file_name);
     sub_game_state       = nh.subscribe("/heroehs/game_state", 1, GameStateCallback);
     //    sub_on_process       = nh.subscribe("/heroehs/alice/on_process", 1, OnProcessCallback);
     sub_on_process       = nh.subscribe("/heroehs/status", 1, OnProcessCallback);
@@ -89,6 +96,7 @@ public:
   // obj[4] : our goalpost
   void Update()
   {
+    cur_time = ros::Time::now();
     Read();
     StateCheck();
     //cout << on_process << "," << is_cooling<<endl;
@@ -125,6 +133,14 @@ public:
       }
     }
     pub_head_command.publish(head_command_msg);
+    stringstream ss;
+    ss << "[ROS Time " << cur_time.sec << "." << cur_time.nsec << "]" << endl
+       << "head_command_msg.data        : " << head_command_msg.data << endl
+       << "move_command_msg.mode        : " << move_command_msg.mode << endl
+       << "move_command_msg.transform.x : " << move_command_msg.transform.x << endl
+       << "move_command_msg.transform.y : " << move_command_msg.transform.y << endl
+       << "move_command_msg.transform.z : " << move_command_msg.transform.z << endl;
+    log_file->Write(ss.str());
   }
 
   void Ready()
@@ -133,7 +149,6 @@ public:
 
   void Attack()
   {
-    ros::Time cur_time = ros::Time::now();
     float angle = atan2(obj[0].pos.y, obj[0].pos.x);
     //cout << angle << endl;
     if(!on_process && !is_cooling)
@@ -175,7 +190,7 @@ public:
           }
         }
       }
-      else if(obj_lost[0] - ros::Time::now() < ros::Duration(2))
+      else if(cur_time - obj_lost[0] < ros::Duration(2))
       {
         if(obj[0].pos.x < 0.4 && fabs(obj[0].pos.y) < 0.2)
         {
@@ -411,6 +426,7 @@ int main(int argc, char **argv)
     ros::spinOnce();
     usleep(200000);
   }
+  delete alice;
 }
 
 void GameStateCallback(const alice_msgs::RoboCupGameControlData &msg)

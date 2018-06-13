@@ -37,7 +37,7 @@ int main(int argc, char**argv)
 
   ros::Time t = ros::Time::now();
 
-  string path = "/home/alice1-nuke/logs/robocup_2018/vision";
+  string path = "/home/alice2-nuke/logs/robocup_2018/vision";
   string date = GetYYMMDD();
   string seconds = GetSeconds(t.sec);
   //nh.getParam("path", path);
