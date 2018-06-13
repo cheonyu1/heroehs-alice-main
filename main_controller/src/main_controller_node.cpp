@@ -52,9 +52,11 @@ public:
   bool is_cooling;
 
   alice_msgs::FoundObject obj[5];
+  ros::Time obj_lost[5];
   bool obj_recv[5];
 
   bool is_moving;
+  bool is_kicking;
 
   Alice(){}
   Alice(ros::NodeHandle &nh):game_state(-1), robot_state(-1), on_process(false)
@@ -105,7 +107,7 @@ public:
       Attack();
       //Defense();
 
-      if(is_moving)
+      if(!is_kicking)
       {
         if(!obj_recv[0])  // didn't receive ball data
           head_command_msg.data = 1;  // detect mode
@@ -168,6 +170,14 @@ public:
           }
         }
       }
+      else if(obj_lost[0] - ros::Time::now() < ros::Duration(2))
+      {
+        if(obj[0].pos.x < 0.4 && fabs(obj[0].pos.y) < 0.2)
+        {
+          Kick();
+        }
+      }
+
 //      else  // didn't receive ball data
 //      {
 //        head_command_msg.data = 1;  // detect mode
@@ -212,7 +222,6 @@ public:
   {
     if(is_moving)
     {
-      head_command_msg.data = 0;
       move_command_msg.mode = 2;
       pub_move_command.publish(move_command_msg);
       SetSignalTimer();
@@ -253,6 +262,7 @@ public:
 
   void Kick()
   {
+    is_kicking = true;
     head_command_msg.data = 0;
     move_command_msg.mode = 1;
     if(obj[0].pos.y > 0)
@@ -363,6 +373,13 @@ public:
         }
       }
     }
+    // update obj_lost time
+    ros::Time temp = ros::Time::now();
+    for(int i=0 ; i<5 ; i++)
+    {
+      if(obj_recv[i])
+        obj_lost[i] = temp;
+    }
   }
 
   void SetSignalTimer()
@@ -415,6 +432,7 @@ void OnProcessCallback(const robotis_controller_msgs::StatusMsg &msg)
     alice->on_process = true;
   else if(strcmp(msg.status_msg.c_str(), "Walking_Finished") == 0)
   {
+    alice->is_kicking = false;
     alice->on_process = false;
     alice->SetSignalTimer(0.6);
   }
