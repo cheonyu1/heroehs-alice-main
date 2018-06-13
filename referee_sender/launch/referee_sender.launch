@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node name="referee_sender_node" pkg="referee_sender" type="referee_sender_node" />
+
+</launch>

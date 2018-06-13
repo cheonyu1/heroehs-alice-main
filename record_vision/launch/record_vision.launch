@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <node name="record_vision_node" pkg="record_vision" type="record_vision_node">
+    <param name="path" type="str" value="/home/alice1-nuke/logs/robocup_2018/vision" />
+  </node>
+
+</launch>
